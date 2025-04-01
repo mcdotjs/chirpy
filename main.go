@@ -2,19 +2,25 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
 func main() {
-	fmt.Println("chirpy go")
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(".")))
-	server := http.Server{
-		Addr:    ":8080",
+	port := "8080"
+	filepathRoot := "."
+	
+	mux.Handle("/", http.FileServer(http.Dir(filepathRoot)))
+
+	server := &http.Server{
+		Addr:    ":" + port,
 		Handler: mux,
 	}
 
+	//log.Fatal(srv.ListenAndServe())
 	if err := server.ListenAndServe(); err != nil {
 		fmt.Println("listen", err)
 	}
+	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 }
