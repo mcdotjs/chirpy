@@ -36,7 +36,7 @@ func main() {
 	mux := http.NewServeMux()
 	port := "8080"
 	filepathRoot := "."
-	
+
 	handler := http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(handler))
 
@@ -45,8 +45,20 @@ func main() {
 		w.WriteHeader(200)
 		w.Write([]byte("OK"))
 	})
+	mux.HandleFunc("GET /admin/metrics", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(200)
+
+		html := fmt.Sprintf(`<html>
+  <body>
+    <h1>Welcome, Chirpy Admin</h1>
+    <p>Chirpy has been visited %d times!</p>
+  </body>
+</html>`, apiCfg.fileserverHits.Load())
+		fmt.Fprintf(w, html)
+	})
+	mux.HandleFunc("POST /admin/reset", apiCfg.resetMetricsHandler)
 	mux.HandleFunc("GET /api/metrics", apiCfg.metricsHandler)
-	mux.HandleFunc("POST /api/reset", apiCfg.resetMetricsHandler)
 
 	server := &http.Server{
 		Addr:    ":" + port,
