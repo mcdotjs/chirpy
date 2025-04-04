@@ -24,6 +24,7 @@ func (c *apiConfig) metricsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *apiConfig) resetMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	c.db.DeleteAllUsers(r.Context())
 	c.fileserverHits.Store(0)
 	count := c.fileserverHits.Load()
 	fmt.Fprintf(w, "Hits: %d", count)
@@ -82,6 +83,8 @@ func main() {
 	mux.HandleFunc("GET /api/metrics", apiCfg.metricsHandler)
 
 	mux.HandleFunc("POST /api/validate_chirp", apiCfg.validateChirpHandler)
+
+	mux.HandleFunc("POST /api/users", apiCfg.createUserHandler)
 
 	server := &http.Server{
 		Addr:    ":" + port,
