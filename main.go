@@ -57,8 +57,11 @@ func main() {
 </html>`, apiCfg.fileserverHits.Load())
 		fmt.Fprintf(w, html)
 	})
+
 	mux.HandleFunc("POST /admin/reset", apiCfg.resetMetricsHandler)
 	mux.HandleFunc("GET /api/metrics", apiCfg.metricsHandler)
+
+	mux.HandleFunc("POST /api/validate_chirp", apiCfg.validateChirpHandler)
 
 	server := &http.Server{
 		Addr:    ":" + port,
