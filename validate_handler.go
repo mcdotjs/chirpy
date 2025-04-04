@@ -11,7 +11,8 @@ func (c *apiConfig) validateChirpHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	type returnVals struct {
-		Valid bool `json:"valid,omitempty"`
+		Valid       bool   `json:"valid,omitempty"`
+		CleanedBody string `json:"cleaned_body,omitempty"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -28,7 +29,9 @@ func (c *apiConfig) validateChirpHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	//tuna zavolam checkForProfane
+	cleanedBody := checkForProfane(params.Body)
 	respondWithJSON(w, http.StatusOK, returnVals{
-		Valid: true,
+		CleanedBody: cleanedBody,
 	})
 }
