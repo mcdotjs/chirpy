@@ -38,7 +38,7 @@ func (c *apiConfig) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, returnVals{
 		ID:        user.ID,
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt.Time.UTC(),
-		UpdatedAt: user.UpdatedAt.Time.UTC(),
+		CreatedAt: user.CreatedAt.UTC(),
+		UpdatedAt: user.UpdatedAt.UTC(),
 	})
 }
