@@ -36,7 +36,6 @@ func main() {
 
 	apiCfg := &apiConfig{}
 	apiCfg.db = dbQueries
-
 	mux := http.NewServeMux()
 	handler := http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(handler))
