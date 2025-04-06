@@ -16,6 +16,7 @@ import (
 type apiConfig struct {
 	fileserverHits atomic.Int32
 	db             *database.Queries
+	jwtSecret      string
 }
 
 func main() {
@@ -24,7 +25,6 @@ func main() {
 	filepathRoot := "."
 
 	dbURL := os.Getenv("DB_URL")
-	fmt.Println(dbURL)
 	if dbURL == "" {
 		log.Fatal("DB_URL must be set")
 	}
@@ -36,6 +36,9 @@ func main() {
 
 	apiCfg := &apiConfig{}
 	apiCfg.db = dbQueries
+	apiCfg.jwtSecret = os.Getenv("JWT_SECRET")
+
+	fmt.Println(dbURL, apiCfg.jwtSecret)
 	mux := http.NewServeMux()
 	handler := http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))
 	mux.Handle("/app/", apiCfg.middlewareMetricsInc(handler))
