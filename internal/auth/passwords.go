@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -10,7 +9,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// HashPassword -
 func HashPassword(password string) (string, error) {
 	dat, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -19,18 +17,13 @@ func HashPassword(password string) (string, error) {
 	return string(dat), nil
 }
 
-// CheckPasswordHash -
 func CheckPasswordHash(password, hash string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
-// type MyCustomClaims struct {
-// 	jwt.RegisteredClaims
-// }
- type TokenType string
+type TokenType string
 
 const (
-	// TokenTypeAccess -
 	TokenTypeAccess TokenType = "chirpy-access"
 )
 
@@ -48,26 +41,6 @@ func MakeJWT(
 	})
 	return token.SignedString(signingKey)
 }
-// func MakeJWT3(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
-// 	mySigningKey := []byte(tokenSecret)
-//
-// 	parsedID := userID.String()
-// 	claims := MyCustomClaims{
-// 		jwt.RegisteredClaims{
-// 			Issuer:    "chirpy",
-// 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
-// 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-// 			NotBefore: jwt.NewNumericDate(time.Now()),
-// 			Subject:   parsedID,
-// 		},
-// 	}
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-// 	ss, err := token.SignedString(mySigningKey)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	return ss, nil
-// }
 
 func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	claimsStruct := jwt.RegisteredClaims{}
@@ -99,16 +72,3 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	}
 	return id, nil
 }
-// func ValidadteJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
-// 	token, err := jwt.ParseWithClaims(tokenString, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-// 		return []byte(tokenSecret), nil
-// 	})
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	} else if claims, ok := token.Claims.(*MyCustomClaims); ok {
-// 		return uuid.MustParse(claims.RegisteredClaims.Subject), nil
-// 	} else {
-// 		fmt.Errorf("unknown claims type, cannot proceed")
-// 	}
-// 	return uuid.UUID{}, nil
-// }
