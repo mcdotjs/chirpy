@@ -13,35 +13,26 @@ import (
 )
 
 type returnedUser struct {
-	ID        uuid.UUID `json:"id"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Token     string    `json:"token,omitempty"`
+	ID           uuid.UUID `json:"id"`
+	Email        string    `json:"email"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	AccessToken  string    `json:"token,omitempty"`
+	RefreshToken string    `json:"refresh_token,omitempty"`
 }
 
 func (c *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 	type loginParameters struct {
-		Email            string `json:"email"`
-		Password         string `json:"password"`
-		ExpiresInSeconds int    `json:"expires_in_seconds"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
-	expiresInSeconds := 3600
 	decoder := json.NewDecoder(r.Body)
 	params := loginParameters{}
 	err := decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "LOGIN: Error decoding parameters", err)
 		return
-	}
-
-	if params.ExpiresInSeconds > 0 {
-		if params.ExpiresInSeconds > 3600 {
-			expiresInSeconds = 3600
-		} else {
-			expiresInSeconds = params.ExpiresInSeconds
-		}
 	}
 
 	userByEmail, err := c.db.GetUserByEmail(r.Context(), params.Email)
@@ -56,19 +47,40 @@ func (c *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	generatedToken, err := auth.MakeJWT(userByEmail.ID, c.jwtSecret, time.Duration(expiresInSeconds)*time.Second)
-	fmt.Println("generatedToken", generatedToken)
+	generatedAccessToken, err := auth.MakeJWT(userByEmail.ID, c.jwtSecret, time.Duration(3600)*time.Second)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Problem with jwt generation", err)
 		return
 	}
 
+	generatedRefreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Problem with making refresh token", err)
+		return
+	}
+
+	storedRefreshToken, err := c.db.CreateRefreshToken(r.Context(),
+		database.CreateRefreshTokenParams{
+			Token:  generatedRefreshToken,
+			UserID: userByEmail.ID,
+		},
+	)
+
+	//NOTE: egal which is in response??
+	fmt.Println("stored and generated has to be same", storedRefreshToken.Token, generatedRefreshToken)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Problem with storing refresh token in database", err)
+		return
+	}
+
 	respondWithJSON(w, http.StatusOK, returnedUser{
-		ID:        userByEmail.ID,
-		Email:     userByEmail.Email,
-		CreatedAt: userByEmail.CreatedAt.UTC(),
-		UpdatedAt: userByEmail.UpdatedAt.UTC(),
-		Token:     generatedToken,
+		ID:           userByEmail.ID,
+		Email:        userByEmail.Email,
+		CreatedAt:    userByEmail.CreatedAt.UTC(),
+		UpdatedAt:    userByEmail.UpdatedAt.UTC(),
+		AccessToken:  generatedAccessToken,
+		RefreshToken: generatedRefreshToken,
 	})
 }
 
