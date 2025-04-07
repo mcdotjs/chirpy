@@ -26,9 +26,8 @@ func (c *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 		Password         string `json:"password"`
 		ExpiresInSeconds int    `json:"expires_in_seconds"`
 	}
-	expiresInSeconds := 3600 // 1 hour in seconds
 
-
+	expiresInSeconds := 3600
 	decoder := json.NewDecoder(r.Body)
 	params := loginParameters{}
 	err := decoder.Decode(&params)
