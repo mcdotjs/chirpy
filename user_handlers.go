@@ -119,3 +119,53 @@ func (c *apiConfig) createUserHandler(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: user.UpdatedAt.UTC(),
 	})
 }
+
+func (c *apiConfig) updateUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	type updateParameters struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := updateParameters{}
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error decoding update parameters", err)
+		return
+	}
+
+	refreshTokenInHeader, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Bearer missing when updating user", err)
+		return
+	}
+	userId, err := auth.ValidateJWT(refreshTokenInHeader, c.jwtSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Invalid access token", err)
+		return
+	}
+
+	hashedPassoword, err := auth.HashPassword(params.Password)
+	if err != nil {
+		log.Println("hashing new passwd error", err)
+	}
+
+	updatedUser, err := c.db.UpdateUserEmailAndPassword(r.Context(), database.UpdateUserEmailAndPasswordParams{
+		Email:          params.Email,
+		HashedPassword: hashedPassoword,
+		ID:             userId,
+	})
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Problem with updating user", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, returnedUser{
+		ID:        updatedUser.ID,
+		Email:     updatedUser.Email,
+		CreatedAt: updatedUser.CreatedAt.UTC(),
+		UpdatedAt: updatedUser.UpdatedAt.UTC(),
+	})
+}
