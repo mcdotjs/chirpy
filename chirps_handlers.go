@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -20,11 +21,10 @@ type Chirp struct {
 }
 
 func (c *apiConfig) getChirpById(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.PathValue("id"))
 	chirpID := r.PathValue("id")
 	chirp, err := c.db.GetChirpById(r.Context(), uuid.MustParse(chirpID))
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Problem wihth getting chirp by ID", err)
+		respondWithError(w, http.StatusNotFound, "Problem wihth getting chirp by ID", err)
 	}
 
 	respondWithJSON(w, http.StatusOK, Chirp{
@@ -101,4 +101,38 @@ func (c *apiConfig) createChirpHandler(w http.ResponseWriter, r *http.Request) {
 		Body:      chirp.Body,
 		UserID:    chirp.UserID,
 	})
+}
+
+func (c *apiConfig) deleteChirpHandler(w http.ResponseWriter, r *http.Request) {
+	chirpID := r.PathValue("chirpID")
+
+	refreshTokenInHeader, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Bearer missing when updating user", err)
+		return
+	}
+	ch, err := c.db.GetChirpById(r.Context(), uuid.MustParse(chirpID))
+	fmt.Println("PPPPP", ch)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Chirp was not found", err)
+		return
+	}
+
+	userId, err := auth.ValidateJWT(refreshTokenInHeader, c.jwtSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Invalid access token", err)
+		return
+	}
+
+	_, err = c.db.DeleteChirpById(r.Context(), database.DeleteChirpByIdParams{
+		ID:     uuid.MustParse(chirpID),
+		UserID: userId,
+	})
+
+	if err != nil {
+		respondWithError(w, http.StatusForbidden, "You have no permission for this", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -13,6 +13,8 @@ RETURNING *;
 SELECT * FROM chirps 
 ORDER BY created_at ASC;
 
-
 -- name: GetChirpById :one
 SELECT * FROM chirps WHERE id = $1;
+
+-- name: DeleteChirpById :one
+DELETE FROM chirps WHERE id = $1 and user_id = $2 RETURNING *;
