@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/mcdotjs/chirpy/internal/auth"
 )
 
 func (c *apiConfig) redChirpWebhookHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,9 +16,19 @@ func (c *apiConfig) redChirpWebhookHandler(w http.ResponseWriter, r *http.Reques
 		} `json:"data"`
 	}
 
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Bearer missing when updating user", err)
+		return
+	}
+	if apiKey != c.polkaSecret {
+		respondWithError(w, http.StatusUnauthorized, "Bearer missing when updating user", err)
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Error decoding parameters", err)
 		return
