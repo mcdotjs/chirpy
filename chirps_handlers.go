@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,12 +42,10 @@ func (c *apiConfig) getAllChirpsHandler(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Problem wihth getting all chirps", err)
 	}
-	// s := r.URL.Query().Get("author_id")
 	// if len(s) > 0 {
 	// 	chirps, err = c.db.GetAllChirpsForUser(r.Context(), uuid.MustParse(s))
 	// }
 	//
-	//NOTE: or
 	authorID := uuid.Nil
 	authorIDString := r.URL.Query().Get("author_id")
 	if authorIDString != "" {
@@ -70,6 +69,14 @@ func (c *apiConfig) getAllChirpsHandler(w http.ResponseWriter, r *http.Request) 
 			UserID:    ch.UserID,
 		})
 	}
+	sortParam := "asc"
+	sortParam = r.URL.Query().Get("sort")
+	sort.Slice(finalChirps, func(i, j int) bool {
+		if sortParam == "asc" {
+			return finalChirps[i].CreatedAt.Before(finalChirps[j].CreatedAt)
+		}
+		return finalChirps[i].CreatedAt.After(finalChirps[j].CreatedAt)
+	})
 	respondWithJSON(w, http.StatusOK, finalChirps)
 }
 
