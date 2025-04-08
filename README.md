@@ -34,7 +34,7 @@ you need go (at least 1.24), postgresql, goose, sqlc
 
 
 > /api/users
-- POST /api/users creates a new user with provided email and password, the password is hashed before storing
+- POST /api/users creates a new user with provided email and password
 - PUT /api/users updates the users email and password
 
 
