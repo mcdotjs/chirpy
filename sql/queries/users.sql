@@ -19,3 +19,5 @@ WHERE id = $3 RETURNING *;
 -- name: DeleteAllUsers :exec
 DELETE FROM users;
 
+-- name: UpdateUserToRedChirp :one
+UPDATE users SET is_chirpy_red = true WHERE id = $1 RETURNING *;

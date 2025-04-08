@@ -17,6 +17,7 @@ type returnedUser struct {
 	Email        string    `json:"email"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+	IsChirpyRed  bool      `json:"is_chirpy_red"`
 	AccessToken  string    `json:"token,omitempty"`
 	RefreshToken string    `json:"refresh_token,omitempty"`
 }
@@ -79,6 +80,7 @@ func (c *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
 		Email:        userByEmail.Email,
 		CreatedAt:    userByEmail.CreatedAt.UTC(),
 		UpdatedAt:    userByEmail.UpdatedAt.UTC(),
+		IsChirpyRed:  userByEmail.IsChirpyRed.Bool,
 		AccessToken:  generatedAccessToken,
 		RefreshToken: generatedRefreshToken,
 	})
@@ -113,10 +115,11 @@ func (c *apiConfig) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, returnedUser{
-		ID:        user.ID,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt.UTC(),
-		UpdatedAt: user.UpdatedAt.UTC(),
+		ID:          user.ID,
+		Email:       user.Email,
+		CreatedAt:   user.CreatedAt.UTC(),
+		UpdatedAt:   user.UpdatedAt.UTC(),
+		IsChirpyRed: user.IsChirpyRed.Bool,
 	})
 }
 
@@ -163,9 +166,10 @@ func (c *apiConfig) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, returnedUser{
-		ID:        updatedUser.ID,
-		Email:     updatedUser.Email,
-		CreatedAt: updatedUser.CreatedAt.UTC(),
-		UpdatedAt: updatedUser.UpdatedAt.UTC(),
+		ID:          updatedUser.ID,
+		Email:       updatedUser.Email,
+		CreatedAt:   updatedUser.CreatedAt.UTC(),
+		UpdatedAt:   updatedUser.UpdatedAt.UTC(),
+		IsChirpyRed: updatedUser.IsChirpyRed.Bool,
 	})
 }
