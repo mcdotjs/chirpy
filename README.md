@@ -15,10 +15,10 @@ you need go (at least 1.24), postgresql, goose, sqlc
 - POLKA_KEY 
     - api key
 
-# run
+#### run
 - go run .
 
-# test
+#### test
 - go test ./...
 
 
